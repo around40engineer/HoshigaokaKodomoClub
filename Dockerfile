@@ -2,8 +2,8 @@ FROM public.ecr.aws/bitnami/node:22 as webBuild
 WORKDIR /tmp
 COPY ./frontend ./frontend
 WORKDIR /tmp/frontend
-RUN yarn install
-RUN yarn build
+RUN npm install
+RUN npm run build
 
 FROM public.ecr.aws/bitnami/gradle:7 as serverBuild
 WORKDIR /tmp
