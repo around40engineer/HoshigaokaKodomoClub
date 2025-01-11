@@ -1,4 +1,4 @@
-FROM public.ecr.aws/bitnami/node:18 as webBuild
+FROM public.ecr.aws/bitnami/node:22 as webBuild
 WORKDIR /tmp
 COPY ./frontend ./frontend
 WORKDIR /tmp/frontend
