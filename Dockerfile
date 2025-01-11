@@ -5,7 +5,7 @@ WORKDIR /tmp/frontend
 RUN npm install
 RUN npm run build
 
-FROM public.ecr.aws/bitnami/gradle:7 as serverBuild
+FROM public.ecr.aws/bitnami/gradle:8 as serverBuild
 WORKDIR /tmp
 COPY ./backend ./backend
 WORKDIR /tmp/backend
