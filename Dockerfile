@@ -5,14 +5,14 @@ WORKDIR /tmp/frontend
 RUN npm install
 RUN npm run build
 
-FROM public.ecr.aws/bitnami/gradle:8.8 as serverBuild
+FROM public.ecr.aws/bitnami/gradle:8 as serverBuild
 WORKDIR /tmp
 COPY ./backend ./backend
 WORKDIR /tmp/backend
 COPY --from=webBuild /tmp/frontend/dist /tmp/backend/src/main/resources/static
 RUN ./gradlew build -x test
 
-FROM public.ecr.aws/docker/library/openjdk:17-jdk
+FROM public.ecr.aws/docker/library/openjdk:21-jdk
 ARG SPRING_PROFILE
 ENV SPRING_PROFILE ${SPRING_PROFILE}
 
