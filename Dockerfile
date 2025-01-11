@@ -5,11 +5,12 @@ WORKDIR /tmp/frontend
 RUN npm install
 RUN npm run build
 
-FROM public.ecr.aws/bitnami/gradle:8 as serverBuild
+FROM gradle:jdk21 as serverBuild
 WORKDIR /tmp
 COPY ./backend ./backend
 WORKDIR /tmp/backend
 COPY --from=webBuild /tmp/frontend/dist /tmp/backend/src/main/resources/static
+RUN ./gradlew wrapper --gradle-version 8.8 --distribution-type all
 RUN ./gradlew build -x test
 
 FROM public.ecr.aws/docker/library/openjdk:21-jdk
