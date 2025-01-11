@@ -17,6 +17,6 @@ FROM public.ecr.aws/docker/library/openjdk:21-jdk
 ARG SPRING_PROFILE
 ENV SPRING_PROFILE ${SPRING_PROFILE}
 
-COPY --from=serverBuild /tmp/server/build/libs/backend-0.0.1-SNAPSHOT.jar ./app.jar
+COPY --from=serverBuild /tmp/backend/build/libs/backend-0.0.1-SNAPSHOT.jar ./app.jar
 EXPOSE 8080
 CMD java -jar app.jar --spring.profiles.active=${SPRING_PROFILE}
