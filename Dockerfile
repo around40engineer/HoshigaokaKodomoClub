@@ -19,4 +19,4 @@ ENV SPRING_PROFILES_ACTIVE ${SPRING_PROFILES_ACTIVE}
 
 COPY --from=serverBuild /tmp/backend/build/libs/backend-0.0.1-SNAPSHOT.jar ./app.jar
 EXPOSE 8080
-CMD java -jar app.jar --spring.profiles.active=${SPRING_PROFILES_ACTIVE}
+CMD java -Ddebug -jar app.jar --spring.profiles.active=${SPRING_PROFILES_ACTIVE}
