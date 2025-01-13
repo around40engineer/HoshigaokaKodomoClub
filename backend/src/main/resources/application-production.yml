@@ -15,3 +15,9 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         use_sql_comments: true
+line:
+  bot:
+    channel-token: ${LINE_CHANNEL_TOKEN}
+    channel-secret: ${LINE_CHANNEL_SECRET}
+    handler:
+      path: /callback
