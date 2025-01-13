@@ -21,6 +21,7 @@ class MessageController (val service: MessageService) {
     @EventMapping
     fun handleMessage(event: MessageEvent?, textMessageContent: TextMessageContent){
         if (event != null) {
+            println(textMessageContent.text)
             service.talk(event, textMessageContent)
         }
     }
