@@ -1,7 +1,6 @@
 package com.around40engineer.backend
 
 import com.linecorp.bot.messaging.client.MessagingApiClient
-import com.linecorp.bot.messaging.model.Message
 import com.linecorp.bot.messaging.model.ReplyMessageRequest
 import com.linecorp.bot.messaging.model.TextMessage
 import com.linecorp.bot.webhook.model.FollowEvent
