@@ -104,13 +104,21 @@ class MessageServiceImpl(
 
     private fun getForwardingDestination(event: MessageEvent, textMessageContent: TextMessageContent) {
         var text = "現在、転送設定されているメールアドレスは以下の通りです。\n"
-        forwardingDestinationRepository.findAll().forEach {
-            text += "${it.email}\n"
+        val forwardingDestinations = forwardingDestinationRepository.findAll()
+        if (forwardingDestinations.size != 0){
+            forwardingDestinations.forEach {
+                text += "${it.email}\n"
+            }
+            val followMessage = listOf(
+                TextMessage(text)
+            )
+            messagingApiClient.replyMessage(ReplyMessageRequest(event.replyToken, followMessage, false))
+        }else{
+            val followMessage = listOf(
+                TextMessage("現在、転送先は設定されていません。")
+            )
+            messagingApiClient.replyMessage(ReplyMessageRequest(event.replyToken, followMessage, false))
         }
-        val followMessage = listOf(
-            TextMessage(text)
-        )
-        messagingApiClient.replyMessage(ReplyMessageRequest(event.replyToken, followMessage, false))
     }
 
     private fun forwardToMail(event: MessageEvent, textMessageContent: TextMessageContent) {
