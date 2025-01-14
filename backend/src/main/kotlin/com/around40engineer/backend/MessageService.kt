@@ -61,8 +61,9 @@ class MessageServiceImpl(
                 }
             }else if(userEntity.status == "delete"){
                 if (emailPattern.matcher(textMessageContent.text).matches()) {
-                    if(forwardingDestinationRepository.findAll().map{it.email}.contains(textMessageContent.text)){
-                        forwardingDestinationRepository.save(ForwardingDestinationEntity(email = textMessageContent.text))
+                    val deleteMail = forwardingDestinationRepository.findForwardingDestinationEntityByEmail(textMessageContent.text)
+                    if(deleteMail != null){
+                        forwardingDestinationRepository.delete(deleteMail)
                         userRepository.save(UserEntity(event.source.userId(), "normal"))
                         val successMessage = listOf(
                             TextMessage("${textMessageContent.text}\nの転送を解除しました。")
