@@ -17,7 +17,8 @@ interface MessageService {
 @Service
 class MessageServiceImpl(
     val messagingApiClient: MessagingApiClient,
-    val userRepository: UserRepository
+    val userRepository: UserRepository,
+    val forwardingDestinationRepository: ForwardingDestinationRepository
 ) : MessageService {
     override fun follow(event: FollowEvent) {
         println("followEvent: $event")
@@ -40,31 +41,43 @@ class MessageServiceImpl(
         }else{
             if(userEntity.status == "register"){
                 if (emailPattern.matcher(textMessageContent.text).matches()) {
-//                    forwardingDestinationRepository.save(FordingDestination(textMessageContent.text))
-                    userRepository.save(UserEntity(event.source.userId(), "normal"))
-                    val successMessage = listOf(
-                        TextMessage("${textMessageContent.text}\nを転送先に登録しました。")
-                    )
-                    messagingApiClient.replyMessage(ReplyMessageRequest(event.replyToken, successMessage, false))
+                    if(forwardingDestinationRepository.findAll().map{it.email}.contains(textMessageContent.text)){
+                        val errorMessage = listOf(
+                            TextMessage("${textMessageContent.text}\nは既に登録されています。")
+                        )
+                        messagingApiClient.replyMessage(ReplyMessageRequest(event.replyToken, errorMessage, false))
+                        userRepository.save(UserEntity(event.source.userId(), "normal"))
+                    }else{
+                        forwardingDestinationRepository.save(ForwardingDestinationEntity(email = textMessageContent.text))
+                        userRepository.save(UserEntity(event.source.userId(), "normal"))
+                        val successMessage = listOf(
+                            TextMessage("${textMessageContent.text}\nを転送先に登録しました。")
+                        )
+                        messagingApiClient.replyMessage(ReplyMessageRequest(event.replyToken, successMessage, false))
+                    }
                 } else {
-                    val errorMessage = listOf(
-                        TextMessage("無効なメールアドレスです。もう一度入力してください。")
-                    )
-                    messagingApiClient.replyMessage(ReplyMessageRequest(event.replyToken, errorMessage, false))
+                    userRepository.save(UserEntity(event.source.userId(), "normal"))
+                    this.forwardToMail(event, textMessageContent)
                 }
             }else if(userEntity.status == "delete"){
                 if (emailPattern.matcher(textMessageContent.text).matches()) {
-//                    forwardingDestinationRepository.save(FordingDestination(textMessageContent.text))
-                    userRepository.save(UserEntity(event.source.userId(), "normal"))
-                    val successMessage = listOf(
-                        TextMessage("${textMessageContent.text}\nの転送を解除しました。")
-                    )
-                    messagingApiClient.replyMessage(ReplyMessageRequest(event.replyToken, successMessage, false))
+                    if(forwardingDestinationRepository.findAll().map{it.email}.contains(textMessageContent.text)){
+                        forwardingDestinationRepository.save(ForwardingDestinationEntity(email = textMessageContent.text))
+                        userRepository.save(UserEntity(event.source.userId(), "normal"))
+                        val successMessage = listOf(
+                            TextMessage("${textMessageContent.text}\nの転送を解除しました。")
+                        )
+                        messagingApiClient.replyMessage(ReplyMessageRequest(event.replyToken, successMessage, false))
+                    }else{
+                        userRepository.save(UserEntity(event.source.userId(), "normal"))
+                        val successMessage = listOf(
+                            TextMessage("${textMessageContent.text}\nは転送先に登録されていません")
+                        )
+                        messagingApiClient.replyMessage(ReplyMessageRequest(event.replyToken, successMessage, false))
+                    }
                 } else {
-                    val errorMessage = listOf(
-                        TextMessage("無効なメールアドレスです。もう一度入力してください。")
-                    )
-                    messagingApiClient.replyMessage(ReplyMessageRequest(event.replyToken, errorMessage, false))
+                    userRepository.save(UserEntity(event.source.userId(), "normal"))
+                    this.forwardToMail(event, textMessageContent)
                 }
             }else{
                 this.forwardToMail(event, textMessageContent)
@@ -74,7 +87,7 @@ class MessageServiceImpl(
 
     private fun prepareToRegister(event: MessageEvent, textMessageContent: TextMessageContent) {
         val followMessage = listOf(
-            TextMessage("転送したいメールアドレスを入力してください。")
+            TextMessage("転送先に指定したいメールアドレスを入力してください。")
         )
         messagingApiClient.replyMessage(ReplyMessageRequest(event.replyToken, followMessage, false))
         userRepository.save(UserEntity(event.source.userId(), "register"))
@@ -89,18 +102,12 @@ class MessageServiceImpl(
     }
 
     private fun getForwardingDestination(event: MessageEvent, textMessageContent: TextMessageContent) {
+        var text = "現在、転送設定されているメールアドレスは以下の通りです。\n"
+        forwardingDestinationRepository.findAll().forEach {
+            text += "${it.email}\n"
+        }
         val followMessage = listOf(
-            TextMessage("現在、転送設定されているメールアドレスは以下の通りです。\n" +
-                    "転送先メールアドレス1\n" +
-                    "転送先メールアドレス2\n" +
-                    "転送先メールアドレス3\n" +
-                    "転送先メールアドレス4\n" +
-                    "転送先メールアドレス5\n" +
-                    "転送先メールアドレス6\n" +
-                    "転送先メールアドレス7\n" +
-                    "転送先メールアドレス8\n" +
-                    "転送先メールアドレス9\n" +
-                    "転送先メールアドレス10\n")
+            TextMessage(text)
         )
         messagingApiClient.replyMessage(ReplyMessageRequest(event.replyToken, followMessage, false))
     }
